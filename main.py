@@ -12,13 +12,13 @@ from libs.camera import Camera
 WINDOW_DIMENSIONS = (1280, 720)
 WINDOW_TITLE = "t3"
 # SIZE = 16_384
-SIZE = 2048
+SIZE = 128
 
-camera = Camera([-2000.0, -2000.0, 5.0], [0.0, 0.0, 0.0], [0.0, 0.0, 1.0], 70, 0.1, 10000, *WINDOW_DIMENSIONS)
+camera = Camera([-SIZE, -SIZE, 5.0], [0.0, 0.0, 0.0], [0.0, 0.0, 1.0], 70, 0.1, 10000, *WINDOW_DIMENSIONS)
 controller = Controller(*WINDOW_DIMENSIONS, WINDOW_TITLE, camera)
 
 base_vertices, base_indices = gen_base_mesh(SIZE + 1, 20, [0.2, 0.5, 0.5])
-terrain_vertices, terrain_indices = gen_terrain(SIZE, 15, 500, [0.6, 0.2, 0.2])
+terrain_vertices, terrain_indices = gen_terrain(SIZE, 15, 30, [0.6, 0.2, 0.2])
 
 base_vertices = np.array(base_vertices, dtype=np.float32)
 base_indices = np.array(base_indices, dtype=np.uint32)
@@ -59,16 +59,21 @@ terrain_vbo = glGenBuffers(1)
 glBindBuffer(GL_ARRAY_BUFFER, terrain_vbo)
 glBufferData(GL_ARRAY_BUFFER, terrain_vertices.nbytes, terrain_vertices, GL_STATIC_DRAW)
 
+for i in range(12):
+    print(terrain_vertices[3 * i], terrain_vertices[3 * i +1], terrain_vertices[3 * i + 2])
 # terrain indices
 terrain_ebo = glGenBuffers(1)
 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, terrain_ebo)
 glBufferData(GL_ELEMENT_ARRAY_BUFFER, terrain_indices.nbytes, terrain_indices, GL_STATIC_DRAW)
 
 glEnableVertexAttribArray(0)
-glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, terrain_indices.itemsize * 6, ctypes.c_void_p(0))
+glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, terrain_indices.itemsize * 9, ctypes.c_void_p(0))
 
 glEnableVertexAttribArray(1)
-glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, terrain_indices.itemsize * 6, ctypes.c_void_p(12))
+glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, terrain_indices.itemsize * 9, ctypes.c_void_p(12))
+
+glEnableVertexAttribArray(2)
+glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, terrain_indices.itemsize * 9, ctypes.c_void_p(24))
 
 glUseProgram(shader)
 glClearColor(0.1, 0.1, 0.1, 1)

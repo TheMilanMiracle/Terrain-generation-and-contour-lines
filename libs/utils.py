@@ -36,7 +36,7 @@ def gen_base_mesh(size, divs, color):
         
         indices += [idx, idx + 1]
         idx += 2
-    
+
     return vertices, indices
 
 
@@ -78,6 +78,7 @@ def gen_terrain(terrain_size, height, scale, color):
     
     
     indices = []
+    normals = []
     for i in range(terrain_size-1):
         for j in range(terrain_size-1):
             tl = i * terrain_size + j
@@ -87,9 +88,35 @@ def gen_terrain(terrain_size, height, scale, color):
 
             indices += [tl, bl, tr]
             indices += [tr, bl, br]
-            
-    
-    return vertices, indices
+
+            orig = np.array([vertices[bl * 6], vertices[bl * 6 + 1], vertices[bl * 6 + 2]])
+            v1 = np.array([vertices[tl * 6], vertices[tl * 6 + 1], vertices[tl * 6 + 2]])
+            v2 =  np.array([vertices[tr * 6], vertices[tr * 6 + 1], vertices[tr * 6 + 2]])
+            v3 = np.array([vertices[br * 6], vertices[br * 6 + 1], vertices[br * 6 + 2]])
+
+            norm1 = np.cross(v2, v1) / np.linalg.norm(np.cross(v2, v1))
+            norm2 = np.cross(v3, v1) / np.linalg.norm(np.cross(v3, v1)) 
+
+            for i in range(3):
+                normals += [norm1[0], norm1[1], norm1[2]]
+
+            for i in range(3):
+                normals += [norm2[0], norm2[1], norm2[2]]
+
+    nvertices = []
+    for v in range(len(vertices) // 6):
+        nvertices += [
+            vertices[v * 6],
+            vertices[v * 6 + 1],
+            vertices[v * 6 + 2],
+            vertices[v * 6 + 3],
+            vertices[v * 6 + 4],
+            vertices[v * 6 + 5],
+            normals [v * 3],
+            normals [v * 3 + 1],
+            normals [v * 3 + 2]
+        ]
+    return nvertices, indices
     
     
 

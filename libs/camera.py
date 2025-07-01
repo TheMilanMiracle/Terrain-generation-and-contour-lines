@@ -14,5 +14,5 @@ class Camera:
         self.projection = pyrr.matrix44.create_perspective_projection_matrix(fov, win_width/win_height, near, far)
     
     def view(self):
-        self.pos = [2000 * math.cos(glfw.get_time() / 2), 2000 * math.sin(glfw.get_time() / 2), 600]
+        self.pos = [128 * math.cos(glfw.get_time() / 2), 128 * math.sin(glfw.get_time() / 2), 100]
         return pyrr.matrix44.create_look_at(self.pos, self.target, self.up)
