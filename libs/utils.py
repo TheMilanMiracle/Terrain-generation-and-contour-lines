@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import noise
 
 def load_shader(path):
     with open(path, 'r') as f:
@@ -91,3 +92,26 @@ def gen_terrain(terrain_size, height, scale, color):
     return vertices, indices
     
     
+
+import numpy as np
+
+def pnoise_heights():
+    shape = (11, 11)
+    scale = 100.0
+    octaves = 6
+    persistence = 0.5
+    lacunarity = 2.0
+
+    heights = np.zeros(shape)
+    for i in range(shape[0]):
+        for j in range(shape[1]):
+            heights[i][j] = noise.pnoise2(i/scale, 
+                                        j/scale, 
+                                        octaves=octaves, 
+                                        persistence=persistence, 
+                                        lacunarity=lacunarity, 
+                                        repeatx=shape[0], 
+                                        repeaty=shape[1], 
+                                        base=0)
+    
+    return heights
