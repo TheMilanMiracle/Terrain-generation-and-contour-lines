@@ -88,84 +88,32 @@ def pnoise_heights(n):
 
 
 def gen_terrain(terrain_size, height, scale, color, heights_func):
-    heights = heights_func(terrain_size)
+    # heights = heights_func(terrain_size)
     vertices = []
     indices = []
     idx = 0
 
     for i in range(terrain_size-1):
         for j in range(terrain_size-1):
-            p0 = np.array([-terrain_size/2 + i,   -terrain_size/2 + j,   heights[i][j]   * (scale * 0.2) + height])
-            p1 = np.array([-terrain_size/2 + (i+1), -terrain_size/2 + j,   heights[i+1][j] * (scale * 0.2) + height])
-            p2 = np.array([-terrain_size/2 + i,   -terrain_size/2 + (j+1), heights[i][j+1] * (scale * 0.2) + height])
-            p3 = np.array([-terrain_size/2 + (i+1), -terrain_size/2 + (j+1), heights[i+1][j+1] * (scale * 0.2) + height])
-
-            v1 = p1 - p0
-            v2 = p2 - p0
-            normal = np.cross(v1, v2)
-            normal = normal / np.linalg.norm(normal)
+            p0 =[-terrain_size/2 + i,   -terrain_size/2 + j]
+            p1 =[-terrain_size/2 + (i+1), -terrain_size/2 + j]
+            p2 =[-terrain_size/2 + i,   -terrain_size/2 + (j+1)]
+            p3 =[-terrain_size/2 + (i+1), -terrain_size/2 + (j+1)]
 
             for p in (p0, p1, p2):
-                vertices += [p[0], p[1], p[2], color[0], color[1], color[2], normal[0], normal[1], normal[2]]
+                vertices += [p[0], p[1]]
                 
             indices += [idx, idx+1, idx+2]
             idx += 3
-
-            v3 = p3 - p1
-            v4 = p2 - p1
-            normal2 = np.cross(v3, v4)
-            normal2 = normal2 / np.linalg.norm(normal2)
+            
             for p in (p2, p1, p3):
-                vertices += [p[0], p[1],  p[2],  color[0],  color[1],  color[2],  normal2[0],  normal2[1],  normal2[2]]
+                vertices += [p[0], p[1]]
             indices += [idx, idx+1, idx+2]
             idx += 3
             
-            
-    for k in range(terrain_size - 1):
-        x0 = -terrain_size/2 + k
-        x1 = x0 + 1
-        for y, norm, side in [(-terrain_size/2, [0.0, -1.0, 0.0], 0), (terrain_size/2 - 1, [0.0, 1.0, 0.0], terrain_size - 1)]:
-            h0 = heights[k][side]   * (scale * 0.2) + height
-            h1 = heights[k+1][side] * (scale * 0.2) + height
-            p0 = [x0, y, h0] + color + norm
-            p1 = [x0, y, 0 ] + color + norm
-            p2 = [x1, y, h1] + color + norm
-            p3 = [x1, y, 0 ] + color + norm
-            vertices += p0 + p1 + p2 + p3
-            indices  += [idx, idx+1, idx+2, idx+1, idx+3, idx+2]
-            idx += 4
-
-    for k in range(terrain_size - 1):
-        y0 = -terrain_size/2 + k
-        y1 = y0 + 1
-        for x, norm, side in [(-terrain_size/2, [-1.0, 0.0, 0.0], 0), (terrain_size/2 - 1, [1.0, 0.0, 0.0], terrain_size - 1)]:
-            h0 = heights[side][k]   * (scale * 0.2) + height
-            h1 = heights[side][k+1] * (scale * 0.2) + height
-            p0 = [x, y0, h0] + color + norm
-            p1 = [x, y0, 0 ] + color + norm
-            p2 = [x, y1, h1] + color + norm
-            p3 = [x, y1, 0 ] + color + norm
-            vertices += p0 + p1 + p2 + p3
-            indices  += [idx, idx+1, idx+2, idx+1, idx+3, idx+2]
-            idx += 4
-    
-    down = [0.0, 0.0, -1.0]
-    r = terrain_size // 2
-    p0 = [-r, -r, 0] + color + down
-    p1 = [r - 1, -r, 0]  + color + down
-    p2 = [r - 1, r - 1, 0]   + color + down
-    p3 = [-r, r - 1, 0]  + color + down
-    
-    vertices += p0 + p1 + p2 + p3
-    indices += [
-        idx, idx + 1, idx + 3,
-        idx + 1, idx + 2, idx + 3  
-    ]
-    
-    print(f"h in [{round(np.min(heights) * (scale * 0.2) + height, 4)}, {round(np.max(heights) * (scale * 0.2) + height, 4)}]")
     print(f"avg is {round(np.mean(height), 4)}")
 
-    return np.array(vertices, dtype=np.float32), np.array(indices, dtype=np.int32), np.max(heights)*(scale*0.2)+height, np.min(heights)*(scale*0.2)+height, np.mean(heights)*(scale*0.2)+height
+    return np.array(vertices, dtype=np.float32), np.array(indices, dtype=np.int32)
 
 
 def gen_sphere(cx, cy, cz, r, color, divs=16):

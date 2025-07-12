@@ -12,23 +12,19 @@ uniform int curves;
 layout(line_strip, max_vertices=64) out;
 out vec3 frag_color;
 
-bool is_border(vec4 p) {
-    float half = float(size) / 2.0;
-    float eps = 0.01;
-
-    return abs(p.x + half) < eps || abs(p.x - (half - 1.0)) < eps ||
-           abs(p.y + half) < eps || abs(p.y - (half - 1.0)) < eps;
+bool intersects(float d1, float d2) {
+    return (d1>0.0 && d2<0.0) || (d1<0.0 && d2>0.0) 
+        || (abs(d1) < 1e-6) || (abs(d2) < 1e-6);
 }
 
 void emitIfIntersect(vec4 v1, float d1, vec4 v2, float d2, vec3 color){
-    if(sign(d1) * sign(d2) < 0) {
-        float t = abs(d1) / (abs(d1)+abs(d2));
-        vec4 v = mix(v1, v2, t);
-        if (is_border(v)) return;
-        frag_color = color;
-        gl_Position = projection * view * v;
-        EmitVertex();
-    }
+    if (!intersects(d1, d2)) return;
+    float t = (abs(d1) < 1e-6) ? 0.0 : abs(d1) / (abs(d1) + abs(d2));
+    vec4 v = mix(v1, v2, t);
+    
+    frag_color = color;
+    gl_Position = projection * view * v;
+    EmitVertex();
 }
 
 void main() {

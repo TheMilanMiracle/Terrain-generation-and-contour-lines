@@ -20,10 +20,10 @@ if len(sys.argv) != 2:
 SIZE = int(sys.argv[1])
 
 camera = Camera(SIZE * 1.2, [-SIZE, -SIZE, 5.0], [0.0, 0.0, 0.0], [0.0, 0.0, 1.0], 70, 0.1, 10000, *WINDOW_DIMENSIONS)
-controller = Controller(*WINDOW_DIMENSIONS, WINDOW_TITLE, camera)
+controller = Controller(*WINDOW_DIMENSIONS, WINDOW_TITLE, camera, SIZE)
 
 light_vertices, light_indices = controller.gen_sphere()
-grid_vertices, grid_indices = controller.generate_floor(SIZE * 4, SIZE // 4, [0.1, 0.3, 0.4])
+grid_vertices, grid_indices = controller.generate_floor(SIZE * 5, SIZE // 8, [0.1, 0.3, 0.4])
 terrain_vertices, terrain_indices = controller.generate_terrain(SIZE, SIZE / 10, 200, [0.6, 0.2, 0.2])
 
 light_shader = compileProgram(
@@ -35,14 +35,17 @@ grid_shader = compileProgram(
     compileShader(load_shader(os.path.join("shaders", "grid.frag")), GL_FRAGMENT_SHADER)
 )
 terrain_shader = compileProgram(
-    compileShader(load_shader(os.path.join("shaders", "terrain.vert")), GL_VERTEX_SHADER), 
+    compileShader(load_shader(os.path.join("shaders", "terrain.vert")), GL_VERTEX_SHADER),
+    compileShader(load_shader(os.path.join("shaders", "terrain.geom")), GL_GEOMETRY_SHADER),
     compileShader(load_shader(os.path.join("shaders", "terrain.frag")), GL_FRAGMENT_SHADER),
 )
 curves_shader = compileProgram(
     compileShader(load_shader(os.path.join("shaders", "curves.vert")), GL_VERTEX_SHADER),
-    compileShader(load_shader(os.path.join("shaders", "curves.frag")), GL_FRAGMENT_SHADER),
     compileShader(load_shader(os.path.join("shaders", "curves.geom")), GL_GEOMETRY_SHADER),
+    compileShader(load_shader(os.path.join("shaders", "curves.frag")), GL_FRAGMENT_SHADER),
 )
+
+controller.set_shaders(terrain_shader, curves_shader)
 
 # light vao
 light_vao = glGenVertexArrays(1)
@@ -99,13 +102,7 @@ glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, terrain_ebo)
 glBufferData(GL_ELEMENT_ARRAY_BUFFER, terrain_indices.nbytes, terrain_indices, GL_STATIC_DRAW)
 
 glEnableVertexAttribArray(0)
-glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, terrain_vertices.itemsize * 9, ctypes.c_void_p(0))
-
-glEnableVertexAttribArray(1)
-glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, terrain_vertices.itemsize * 9, ctypes.c_void_p(12))
-
-glEnableVertexAttribArray(2)
-glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, terrain_vertices.itemsize * 9, ctypes.c_void_p(24))
+glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, terrain_vertices.itemsize * 2, ctypes.c_void_p(0))
 
 # light shader uniforms
 glUseProgram(light_shader)
@@ -125,7 +122,6 @@ glUniformMatrix4fv(lproj_loc, 1, GL_FALSE, camera.projection)
 glUseProgram(terrain_shader)
 proj_loc = glGetUniformLocation(terrain_shader, "projection")
 view_loc = glGetUniformLocation(terrain_shader, "view")
-light_pos_loc = glGetUniformLocation(terrain_shader, "light_position")
 
 glUniformMatrix4fv(proj_loc, 1, GL_FALSE, camera.projection)
 controller.proj_loc = proj_loc
@@ -142,28 +138,28 @@ curves_loc = glGetUniformLocation(curves_shader, "curves")
 
 glUniformMatrix4fv(cproj_loc, 1, GL_FALSE, camera.projection)
 glUniform1i(size_loc, SIZE)
-glUniform1fv(heights_loc, 32, controller.heights)
-glUniform3fv(colors_loc, 32, controller.colors)
-glUniform1i(size_loc, controller.curves)
+glUniform1fv(heights_loc, 32, controller.gui.heights)
+glUniform3fv(colors_loc, 32, controller.gui.colors)
+glUniform1i(curves_loc, controller.gui.curves)
 
 def draw_light():
     global light_indices, light_vertices
     
-    if not controller.draw_light_src:
+    if not controller.gui.draw_light_src:
         return
     
     glBindVertexArray(light_vao)
     glUseProgram(light_shader)
     glUniformMatrix4fv(lview_loc, 1, GL_FALSE, camera.view())
     
-    if controller.new_light_pos:
+    if controller.gui.new_light_pos:
         light_vertices, light_indices = controller.gen_sphere()
         
         glBindBuffer(GL_ARRAY_BUFFER, light_vbo)
         glBufferData(GL_ARRAY_BUFFER, light_vertices.nbytes, light_vertices, GL_STATIC_DRAW)
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, light_indices.nbytes, light_indices, GL_STATIC_DRAW)
         
-        controller.new_light_pos = False
+        controller.gui.new_light_pos = False
     
     glDrawElements(GL_TRIANGLES, len(light_indices), GL_UNSIGNED_INT, None)
     
@@ -182,19 +178,9 @@ def draw_terrain():
     
     glUseProgram(terrain_shader)
     glUniformMatrix4fv(view_loc, 1, GL_FALSE, camera.view())
-    glUniform3fv(light_pos_loc, 1, controller.light_position)
     glBindVertexArray(terrain_vao)
     
-    if controller.new_terrain:
-        terrain_vertices, terrain_indices = controller.generate_terrain(SIZE, SIZE / 10, 60, [0.6, 0.2, 0.2], "esae")
-        
-        glBindBuffer(GL_ARRAY_BUFFER, terrain_vbo)
-        glBufferData(GL_ARRAY_BUFFER, terrain_vertices.nbytes, terrain_vertices, GL_STATIC_DRAW)
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, terrain_indices.nbytes, terrain_indices, GL_STATIC_DRAW)
-        
-        controller.new_terrain = False
-        
-    if not controller.draw_terrain:
+    if not controller.gui.draw_terrain:
         return
 
     glDrawElements(GL_TRIANGLES, len(terrain_indices), GL_UNSIGNED_INT, None)
@@ -203,15 +189,11 @@ def draw_terrain():
 def draw_curves():
     global terrain_indices
     
-    if not controller.draw_curves:
+    if not controller.gui.draw_curves:
         return
     
     glUseProgram(curves_shader)
     glUniformMatrix4fv(cview_loc, 1, GL_FALSE, camera.view())
-    glUniform1i(size_loc, SIZE)
-    glUniform1fv(heights_loc, 32, controller.heights)
-    glUniform3fv(colors_loc, 32, controller.colors)
-    glUniform1i(curves_loc, controller.curves)
     
     glBindVertexArray(terrain_vao)
     glDrawElements(GL_TRIANGLES, len(terrain_indices), GL_UNSIGNED_INT, None)
