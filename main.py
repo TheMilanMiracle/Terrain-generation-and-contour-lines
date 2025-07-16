@@ -24,7 +24,7 @@ controller = Controller(*WINDOW_DIMENSIONS, WINDOW_TITLE, camera, SIZE)
 
 light_vertices, light_indices = controller.gen_sphere()
 grid_vertices, grid_indices = controller.generate_floor(SIZE * 5, SIZE // 8, [0.1, 0.3, 0.4])
-terrain_vertices, terrain_indices = controller.generate_terrain(SIZE, SIZE / 10, 200, [0.6, 0.2, 0.2])
+terrain_vertices, terrain_indices = controller.generate_terrain(SIZE)
 
 light_shader = compileProgram(
     compileShader(load_shader(os.path.join("shaders", "light.vert")), GL_VERTEX_SHADER), 
@@ -62,10 +62,10 @@ glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, light_ebo)
 glBufferData(GL_ELEMENT_ARRAY_BUFFER, light_indices.nbytes, light_indices, GL_STATIC_DRAW)
 
 glEnableVertexAttribArray(0)
-glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, light_vertices.itemsize * 6, ctypes.c_void_p(0))
+glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, light_vertices.itemsize * 7, ctypes.c_void_p(0))
 
 glEnableVertexAttribArray(1)
-glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, light_vertices.itemsize * 6, ctypes.c_void_p(12))
+glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, light_vertices.itemsize * 7, ctypes.c_void_p(12))
 
 # grid vao
 grid_vao = glGenVertexArrays(1)
@@ -201,6 +201,7 @@ def draw_curves():
 
 glClearColor(0.1, 0.1, 0.1, 1)
 glEnable(GL_DEPTH_TEST)
+glEnable(GL_BLEND)
 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 while not glfw.window_should_close(controller.window) and not controller.should_close():

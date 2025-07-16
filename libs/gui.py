@@ -6,7 +6,9 @@ import random
 import numpy as np
 
 class GUI:
-    def __init__(self, window, size):
+    def __init__(self, window, controller, size):
+        self.controller = controller
+        
         imgui.create_context()
         self.renderer = GlfwRenderer(window, False)
         imgui.style_colors_dark()
@@ -20,7 +22,7 @@ class GUI:
         self.curves  = 0
         
         self.input_text = ""
-        self.color_picked = [0.0, 0.0, 0.0]
+        self.color_picked = [1.0, 1.0, 1.0]
         self.draw_light_src = True
         self.draw_curves = True
         self.draw_terrain = True
@@ -43,7 +45,8 @@ class GUI:
         self.new_light_pos = True
         
     def simulation_settings(self):
-        if imgui.begin("Simulation settings", flags = imgui.WINDOW_ALWAYS_AUTO_RESIZE | imgui.WINDOW_NO_RESIZE | imgui.WINDOW_NO_COLLAPSE):
+        imgui.set_next_window_position(0, 0, imgui.ALWAYS, .0, .0)
+        if imgui.begin("Simulation settings", flags = imgui.WINDOW_ALWAYS_AUTO_RESIZE | imgui.WINDOW_NO_RESIZE):
             changed, self.input_text = imgui.input_text("curve height", self.input_text, 256)
             
             changed, self.color_picked = imgui.color_edit3(
@@ -55,8 +58,8 @@ class GUI:
             
             if imgui.core.button("add new curve"):
                 try:
-                    self.heights[self.curves] = float(self.input_text)
-                    self.colors[self.curves]   = self.color_picked
+                    self.heights[self.curves % 32] = float(self.input_text)
+                    self.colors[self.curves % 32]  = self.color_picked
                     self.curves += 1
                     self.update_curves_params()
                     
@@ -95,7 +98,7 @@ class GUI:
                 self.seed = random.randint(0, 10000)
                 self.update_perlin_params()
             
-            imgui.dummy(1, 5)
+            imgui.dummy(1, 15)
             
             imgui.text("scale:")
             imgui.same_line()
@@ -145,46 +148,52 @@ class GUI:
                 self.light_position[2] += 5
                 self.new_light_pos = True
                 
-            changed, self.light_color = imgui.color_edit3(
+            color_changed, self.light_color = imgui.color_edit3(
                 "light_color",
                 *self.light_color,
             )
             
-            if changed:
-                self.new_light_pos = True
-            
-            changed, self.light_strength = imgui.slider_float(
+            strength_changed, self.light_strength = imgui.slider_float(
                 "light strength", self.light_strength, 0.0, 1.0, "Value: %.3f"
             )
+            
+            if color_changed or strength_changed:
+                self.new_light_pos = True
+            
                         
             imgui.end()
         
     def fps(self):
         w, h = imgui.get_io().display_size
-        imgui.set_next_window_position(w * 0.99, h *0.05, imgui.ALWAYS, pivot_x=1.0, pivot_y=1.0)
         flags = imgui.WINDOW_NO_TITLE_BAR     | imgui.WINDOW_NO_RESIZE \
             | imgui.WINDOW_NO_MOVE          | imgui.WINDOW_NO_SCROLLBAR \
             | imgui.WINDOW_NO_BACKGROUND    | imgui.WINDOW_NO_INPUTS
             
+        imgui.set_next_window_position(w, 0, imgui.ALWAYS, 1.0, .0)
         imgui.begin("fps", flags=flags)
         imgui.text(f"FPS: {imgui.get_io().framerate:.2f}")
         imgui.end()
     
     def info(self):
         w, h = imgui.get_io().display_size
-        imgui.set_next_window_position(w * 0.99, h *0.05, imgui.ALWAYS, pivot_x=1.0, pivot_y=1.0)
         flags = imgui.WINDOW_NO_TITLE_BAR     | imgui.WINDOW_NO_RESIZE \
             | imgui.WINDOW_NO_MOVE          | imgui.WINDOW_NO_SCROLLBAR \
             | imgui.WINDOW_NO_BACKGROUND    | imgui.WINDOW_NO_INPUTS
             
-        imgui.set_next_window_size(200, 20)
-        imgui.set_next_window_position(w * 0.99, h * 0.99, imgui.ALWAYS, pivot_x=1.0, pivot_y=1.0)
+        imgui.set_next_window_position(w, h, imgui.ALWAYS, 1.0, 1.0)
         imgui.begin("info", flags=flags)
         imgui.text(f"heights are around {self.height_offset}")
         imgui.end()
-    
-    def update(self):
         
+        imgui.set_next_window_position(w/2, h, imgui.ALWAYS, 0.5, 1.0)
+        imgui.begin("mouse locked", flags=flags)
+        if not self.controller.rclick:
+            imgui.text("mouse locked, press RIGHT CLICK to unlock")
+        else:
+            imgui.text("mouse unlocked, press RIGHT CLICK to lock")
+        imgui.end()
+
+    def update(self):
         self.renderer.process_inputs()
         imgui.new_frame()
         
@@ -200,7 +209,6 @@ class GUI:
         return imgui.get_io().want_capture_mouse ,imgui.get_io().want_capture_keyboard
 
     def update_perlin_params(self):
-        print(self.octaves)
         for shader in [self.tshader, self.cshader]:
             glUseProgram(shader)
             glUniform1f(glGetUniformLocation(shader, "u_zoom"), self.zoom)

@@ -2,6 +2,7 @@ import numpy as np
 import glfw
 from OpenGL.GL import *
 import pyrr
+from PIL import Image
 
 from libs.utils import * 
 from libs.gui import GUI
@@ -43,7 +44,7 @@ class Controller:
         self.io_wants_mouse = False
         self.io_wants_keyboard = False
         
-        self.gui = GUI(self.window, size)
+        self.gui = GUI(self.window, self, size)
         
         glfw.set_cursor(self.window, self.cursors[int(self.click)])
         glfw.set_input_mode(self.window, glfw.CURSOR, self.cursor_modes[int(self.rclick)])
@@ -53,7 +54,11 @@ class Controller:
         glfw.set_scroll_callback(self.window, self.scroll_callback)
 
         self.camera.update_mouse(*glfw.get_cursor_pos(self.window))
-    
+        
+        img = Image.open("libs/icon.png").convert("RGBA")
+
+        glfw.set_window_icon(self.window, 1, [img])
+            
     def window_resize(self, window, width, height):
         glViewport(0, 0, width, height)
         glUniformMatrix4fv(
@@ -114,17 +119,16 @@ class Controller:
         return self.close
     
     def gen_sphere(self):
-        print(self.gui.light_color)
-        return gen_sphere(*self.gui.light_position, 1.25, self.gui.light_color)
+        return gen_sphere(*self.gui.light_position, 1.25, [*self.gui.light_color, self.gui.light_strength])
 
     def generate_floor(self, size, divisions, color):
         return gen_base_mesh(size, divisions, color)
 
-    def generate_terrain(self, size, height, scale, color, mode="perlin"):
+    def generate_terrain(self, size, mode="perlin"):
         if mode == "perlin":
-            v, i = gen_terrain(size, height, scale, color, pnoise_heights)
+            v, i = gen_terrain(size)
         else:
-            v, i = gen_terrain(size, height, scale, color, diamond_square)
+            v, i = gen_terrain(size)
         return v, i
     
     def update_hud(self):
