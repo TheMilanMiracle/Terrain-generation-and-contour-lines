@@ -41,7 +41,7 @@ class GUI:
         self.light_position = [0.0, 0.0, self.height_offset + 20]
         self.light_speed = 10
         self.light_color = [0.8, 0.8, 0.4]
-        self.light_strength = 0.3
+        self.light_strength = 0.5
         self.new_light_pos = True
         
     def simulation_settings(self):
