@@ -27,22 +27,22 @@ grid_vertices, grid_indices = controller.generate_floor(SIZE * 5, SIZE // 8, [0.
 terrain_vertices, terrain_indices = controller.generate_terrain(SIZE)
 
 light_shader = compileProgram(
-    compileShader(load_shader(os.path.join("shaders", "light.vert")), GL_VERTEX_SHADER), 
-    compileShader(load_shader(os.path.join("shaders", "light.frag")), GL_FRAGMENT_SHADER)
+    compileShader(load_shader(os.path.join("shaders", "light_vert.glsl")), GL_VERTEX_SHADER), 
+    compileShader(load_shader(os.path.join("shaders", "light_frag.glsl")), GL_FRAGMENT_SHADER)
 )
 grid_shader = compileProgram(
-    compileShader(load_shader(os.path.join("shaders", "grid.vert")), GL_VERTEX_SHADER), 
-    compileShader(load_shader(os.path.join("shaders", "grid.frag")), GL_FRAGMENT_SHADER)
+    compileShader(load_shader(os.path.join("shaders", "grid_vert.glsl")), GL_VERTEX_SHADER), 
+    compileShader(load_shader(os.path.join("shaders", "grid_frag.glsl")), GL_FRAGMENT_SHADER)
 )
 terrain_shader = compileProgram(
-    compileShader(load_shader(os.path.join("shaders", "terrain.vert")), GL_VERTEX_SHADER),
-    compileShader(load_shader(os.path.join("shaders", "terrain.geom")), GL_GEOMETRY_SHADER),
-    compileShader(load_shader(os.path.join("shaders", "terrain.frag")), GL_FRAGMENT_SHADER),
+    compileShader(load_shader(os.path.join("shaders", "terrain_vert.glsl")), GL_VERTEX_SHADER),
+    compileShader(load_shader(os.path.join("shaders", "terrain_geom.glsl")), GL_GEOMETRY_SHADER),
+    compileShader(load_shader(os.path.join("shaders", "terrain_frag.glsl")), GL_FRAGMENT_SHADER),
 )
 curves_shader = compileProgram(
-    compileShader(load_shader(os.path.join("shaders", "curves.vert")), GL_VERTEX_SHADER),
-    compileShader(load_shader(os.path.join("shaders", "curves.geom")), GL_GEOMETRY_SHADER),
-    compileShader(load_shader(os.path.join("shaders", "curves.frag")), GL_FRAGMENT_SHADER),
+    compileShader(load_shader(os.path.join("shaders", "curves_vert.glsl")), GL_VERTEX_SHADER),
+    compileShader(load_shader(os.path.join("shaders", "curves_geom.glsl")), GL_GEOMETRY_SHADER),
+    compileShader(load_shader(os.path.join("shaders", "curves_frag.glsl")), GL_FRAGMENT_SHADER),
 )
 
 controller.set_shaders(terrain_shader, curves_shader)
