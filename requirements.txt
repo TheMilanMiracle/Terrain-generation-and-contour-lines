@@ -1,7 +1,7 @@
-glfw==2.9.0
-imgui==2.0.0
-multipledispatch==1.0.0
-numpy==2.3.1
-pillow==11.3.0
-PyOpenGL==3.1.9
-pyrr==0.10.3
+glfw
+imgui
+multipledispatch
+numpy
+pillow
+PyOpenGL
+pyrr
