@@ -50,3 +50,19 @@ En la esquina superior izquierda se puede desplegar un menú con opciones para c
 - Con click derecho se puede desbloquear/bloquear el mouse de la ventana.
 - Con click izquierdo y arrastrando con el mouse se puede mover la cámara.
 - Con la rueda del mouse se puede hacer _zoom in_ y _zoom out_.
+
+## _Preview_
+
+### Generación de Terreno
+
+<div style="text-align: left; margin-bottom: 25px;">
+    <img style="margin: 5px" src="docs/ss1.png" alt="preview1" width="60%">
+    <img style="margin: 5px" src="docs/ss2.png" alt="preview2" width="60%">
+</div>
+
+### Curvas de Nivel
+
+<div style="text-align: left; margin-bottom: 25px;">
+    <img style="margin: 5px" src="docs/ss3.png" alt="preview1" width="60%">
+    <img style="margin: 5px" src="docs/ss4.png" alt="preview1" width="60%">
+</div>
